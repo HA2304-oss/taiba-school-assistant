@@ -134,7 +134,7 @@ function parse(text) {
   flush();
   return out;
 }
-const norm = s => s.replace(/[\u064B-\u0652\u0640]/g, "").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/[^\u0621-\u064A0-9\s]/g, " ").replace(/بدايه|يبدا|تبدا|ابتداء/g, "بدء").replace(/ينصرف|تنصرف|انصراف/g, "انصراف").replace(/طلوع|يطلع|تطلع|نطلع/g, "انصراف").replace(/يمنع|يمنعه|تمنع/g, "غير مؤهل").replace(/تعاميم/g, "تعميم");
+const norm = s => s.replace(/[\u064B-\u0652\u0640]/g, "").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/[^\u0621-\u064A0-9\s]/g, " ").replace(/بدايه|يبدا|تبدا|ابتداء/g, "بدء").replace(/ينصرف|تنصرف|انصراف/g, "انصراف").replace(/طلوع|يطلع|تطلع|نطلع/g, "انصراف").replace(/يمنع|يمنعه|تمنع/g, "غير مؤهل").replace(/تعاميم/g, "تعميم").replace(/امتحانات|امتحان/g, "اختبارات");
 const STOP = new Set(norm("من في على الى عن ما ماذا متى كيف وين اين هل هو هي ان او ثم مع هذا هذه كم لي لو يا ابي ابغي وش شنو عندي لدي له لها رقم هاتف جوال").split(/\s+/));
 const toks = s => norm(s).split(/\s+/).filter(w => w.length > 1 && !STOP.has(w)).map(w => w.replace(/^(وال|بال|كال|فال|لل|ال)/, ""));
 
@@ -247,9 +247,9 @@ const SUGS = [
 /* ---------- الواجهة ---------- */
 const WA = DATA.info.wa, HOT = DATA.info.hot, MAIL = CONFIG.mail;
 const LOGU = (DATA.info.logUrl || "").trim(), SID = Math.random().toString(36).slice(2, 8), DEV = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? "جوال" : "كمبيوتر";
-function log(type, detail, ok) {
+function log(type, detail, ok, ans) {
   if (!LOGU) return;
-  try { fetch(LOGU, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ type, detail: String(detail || "").replace(/\d{6,}/g, "#").slice(0, 200), ok: ok == null ? "" : ok, dev: DEV, sid: SID }) }); } catch (e) {}
+  try { fetch(LOGU, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ type, detail: String(detail || "").replace(/\d{6,}/g, "#").slice(0, 200), ok: ok == null ? "" : ok, ans: String(ans || "").replace(/\*\*/g, "").slice(0, 300), dev: DEV, sid: SID }) }); } catch (e) {}
 }
 const $ = id => document.getElementById(id);
 const main = $("main"), input = $("q"), sendBtn = $("b"), bk = $("bk");
@@ -366,7 +366,7 @@ async function ask(q) {
   go(s); sendBtn.disabled = true;
   let a = await smartAnswer(q, t => { s.h = fmt(t); render(); });
   if (!a) a = localAnswer(q);
-  s.h = fmt(a) + (a === CONFIG.none ? cta(q) : ""); s.done = 1; log("ask", q, a.indexOf(CONFIG.none) === 0 ? 0 : 1);
+  s.h = fmt(a) + (a === CONFIG.none ? cta(q) : ""); s.done = 1; log("ask", q, a.indexOf(CONFIG.none) === 0 ? 0 : 1, a);
   turns.push({ r: "u", x: q }, { r: "b", x: a });
   sendBtn.disabled = false; render();
 }
